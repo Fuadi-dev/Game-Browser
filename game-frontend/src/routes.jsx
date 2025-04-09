@@ -1,5 +1,4 @@
 import Error from "./pages/Error"
-import Home from "./pages/Home"
 import Game from "./pages/Game"
 import Games from "./pages/Games"
 import Login from "./pages/Login"
@@ -12,8 +11,7 @@ import Users from "./dashboard/pages/Users"
 
 const routes = {
     'error' : status => <Error status={status}/>,
-    'home' : _ => <Home/>,
-    'games' : data => <Games sheet={data}/>,
+    'home' : data => <Games sheet={data}/>,
     'game' : data => <Game id={data}/>,
     'play' : data => <Play id={data}/>,
     'login' : _ => <Login/>,

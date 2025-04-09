@@ -6,9 +6,6 @@ import SessionContext from './components/Session'
 import Logout from './pages/Logout'
 import Alert from './components/Alert'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import Nav from './dashboard/components/Nav'
-import Sidebar from './dashboard/components/Sidebar'
-
 
 export default function App() {
 
@@ -29,7 +26,6 @@ export default function App() {
     const {hash} = window.location
     const [page, data] = hash.replace('#', '').split('/')
     session.set({page : page || 'home', data, token, user: JSON.parse(user)})
-
   }, [])
 
   useEffect(()=>{
@@ -38,7 +34,6 @@ export default function App() {
     const resetTimer = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        // console.log(session.get.token);
         if(!sessionStorage.getItem('token')){
           return;
         }
@@ -74,40 +69,31 @@ export default function App() {
     const toast = document.querySelector('.toast');
     if(!toast) return;
     new bootstrap.Toast(toast).show();
-    // session.set({message: null})
   },[session.get.message])
 
-  useEffect(() => {
-    // Jika user sudah login dan bukan player dan belum diarahkan ke admin panel
-    if(session.get.token && session.get.user && session.get.user.role !== 'player' && !adminRedirectComplete){
-      // PERTAMA - dapatkan CSRF cookie
+  // Function to handle admin redirect when user clicks the menu item
+  const redirectToAdminPanel = () => {
+    if (session.get.token && session.get.user && 
+        (session.get.user.role === 'admin' || session.get.user.role === 'developer')) {
+      
       fetch('http://127.0.0.1:8000/sanctum/csrf-cookie', {
         method: "GET",
         credentials: "include",
       })
       .then(response => {
-        // Log semua cookie untuk debugging
-        console.log("All cookies:", document.cookie);
-        
-        // Perbaikan ekstraksi CSRF token
         const xsrfCookie = document.cookie
           .split('; ')
           .find(row => row.startsWith('XSRF-TOKEN='));
-        
-        console.log("XSRF cookie found:", xsrfCookie);
         
         let csrfToken = null;
         if (xsrfCookie) {
           const tokenValue = xsrfCookie.split('=')[1];
           try {
             csrfToken = decodeURIComponent(tokenValue);
-            console.log("Decoded token:", csrfToken);
           } catch (e) {
             console.error('Failed to decode CSRF token:', e);
           }
         }
-        
-        console.log('Final CSRF Token:', csrfToken);
         
         return fetch('http://127.0.0.1:8000/api/admin/auth', {
           method: "POST",
@@ -124,92 +110,32 @@ export default function App() {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
-          // Tandai bahwa redirect sudah dilakukan
-          setAdminRedirectComplete(true);
-          
-          // Simpan data user untuk kembali nanti
-          const userRole = session.get.user.role;
-          const userName = session.get.user.name;
-          
-          // Hapus sesi dari sessionStorage
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('user');
-          
-          // Hapus sesi dari state aplikasi
-          session.set({
-            token: null,
-            user: null,
-            message: {
-              type: 'info',
-              text: `Selamat datang di admin panel, ${userName}. Sesi game telah dihapus.`
-            }
-          });
-          
-          // Arahkan ke admin panel
-          window.location.href = data.redirect;
-        } else if(data.status === "error" && data.redirect){
-          // Tandai bahwa redirect sudah dilakukan
-          setAdminRedirectComplete(true);
-          
-          // Hapus sesi
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem("user");
-          session.set({
-            token: null, 
-            user: null,
-            message: {
-              type: 'warning',
-              text: 'Tidak dapat masuk ke admin panel. Sesi telah dihapus.'
-            }
-          });
-          
-          if(data.redirect){
-            window.location.href = data.redirect;
-          }
+          window.location.href = 'http://127.0.0.1:8000/login';
         }
       })
       .catch((error) => {
-        console.error('Error authenticating with laravel:', error);
-        
-        // Tandai bahwa redirect sudah dilakukan (meskipun gagal)
-        setAdminRedirectComplete(true);
-        
-        // Hapus sesi
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("user");
+        console.error('Error authenticating with Laravel:', error);
         session.set({ 
-          token: null, 
-          user: null,
           message: {
             type: 'danger',
-            text: 'Terjadi kesalahan saat mengakses admin panel. Sesi telah dihapus.'
+            text: 'Terjadi kesalahan saat mengakses admin panel.'
           }
         });
       });
     }
-  },[session.get.token, session.get.user, adminRedirectComplete]);
+  };
 
+  // Add the redirect function to the session context
+  session.redirectToAdminPanel = redirectToAdminPanel;
 
   return (
     <SessionContext.Provider value={session}>
       <>
-        {!session.get.token || !session.get.user || session.get.user.role === 'player' ? (
-          <div className="container-fluid d-flex w-100 h-100 p-3 mx-auto flex-column text-bg-dark">
-            <Header/>
-            <Body/>
-            <Footer/>
-          </div>
-        ) : (
-          <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ height: "100vh", width: "100vw" }}
-          >
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Redirecting to admin panel...</span>
-            </div>
-            <p className="ms-2">Redirecting to admin dashboard...</p>
-          </div>
-        )}
+        <div className="container-fluid d-flex w-100 h-100 p-3 mx-auto flex-column text-bg-dark">
+          <Header/>
+          <Body/>
+          <Footer/>
+        </div>
       
         {session.get.message && <Alert type={session.get.message.type} message={session.get.message.text}/>}
       </>

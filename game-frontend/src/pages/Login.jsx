@@ -59,7 +59,7 @@ export default function Login() {
       sessionStorage.setItem('token', data.token)
       sessionStorage.setItem('user', JSON.stringify(data.user))
     if (window.location.hash == '#login'){
-      const dest = data.user.role == 'player' ? 'home' : 'dashboard'
+      const dest = data.user.role == 'player' ? 'home' : 'home'
       window.location.hash = '#' + dest
         session.set({page : dest})
       }else{

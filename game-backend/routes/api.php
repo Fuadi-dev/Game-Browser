@@ -14,7 +14,12 @@ Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout'
 
 
 Route::get('/game', [App\Http\Controllers\Api\GameController::class, 'game']);
+Route::get('/game/search', [App\Http\Controllers\Api\GameController::class, 'searchGames']);
 Route::get('/game/{id}', [App\Http\Controllers\Api\GameController::class, 'gameById']);
+Route::get('/game/{id}/recommendations', [App\Http\Controllers\Api\GameController::class, 'getRecommendations']);
+
+Route::get('/categories', [App\Http\Controllers\Api\GameController::class, 'categories']);
+
 Route::post('/admin/auth', [App\Http\Controllers\Api\AuthController::class, 'adminAuth']);  // Ubah urutan: api.custom dulu, baru web
 
 //post game

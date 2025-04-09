@@ -60,7 +60,7 @@ class AuthController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Admin authenticated in successfully',
-            'redirect' => 'http://127.0.0.1:8000/login',
+            // 'redirect' => 'http://127.0.0.1:8000/login',
         ], 200);
     }
 

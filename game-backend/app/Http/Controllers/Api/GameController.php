@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Game;
 use Illuminate\Support\Facades\URL;
@@ -175,6 +176,88 @@ class GameController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Permainan tamu dicatat',
+        ], 200);
+    }
+
+    public function getRecommendations($id)
+    {
+        // Find the current game
+        $currentGame = Game::find($id);
+
+        if (!$currentGame) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Game tidak ditemukan',
+            ], 404);
+        }
+
+        // Get categories of the current game
+        $categoryIds = $currentGame->categories()->pluck('categories.id');
+
+        if ($categoryIds->isEmpty()) {
+            return response()->json([
+                'status' => 'success',
+                'recommendations' => [],
+                'message' => 'No categories found for this game'
+            ], 200);
+        }
+
+        // Get games that share at least one category with the current game
+        $recommendations = Game::where('id', '!=', $id)
+                            ->whereHas('categories', function($query) use ($categoryIds) {
+                                $query->whereIn('categories.id', $categoryIds);
+                            })
+                            ->limit(5)
+                            ->get();
+
+        // Transform URLs like in other methods
+        $recommendations->transform(function ($game) {
+            $game->imgUrl = URL::to('storage/images/' . $game->image);
+            return $game;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'recommendations' => $recommendations,
+        ], 200);
+    }
+
+    public function searchGames(Request $request)
+    {
+        $query = Game::query();
+
+        // Search by name
+        if ($request->has('name') && !empty($request->name)) {
+            $query->where('name', 'LIKE', '%' . $request->name . '%');
+        }
+
+        // Search by category
+        if ($request->has('category') && !empty($request->category)) {
+            $categoryId = $request->category;
+            $query->whereHas('categories', function($q) use ($categoryId) {
+                $q->where('categories.id', $categoryId);
+            });
+        }
+
+        $games = $query->get();
+
+        // Transform URLs like in other methods
+        $games->transform(function ($game) {
+            $game->imgUrl = URL::to('storage/images/' . $game->image);
+            return $game;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'games' => $games,
+        ], 200);
+    }
+
+    public function categories(){
+        $categories = Category::all();
+        return response()->json([
+            'status' => 'success',
+            'categories' => $categories,
         ], 200);
     }
 }

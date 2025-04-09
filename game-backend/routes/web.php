@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'loginPost']);
 Route::get('/main', function (){
-    return redirect('http://localhost:5173/');
+    return redirect('http://localhost:3000');
 });
 
 Route::middleware(['auth'])->group(function () {

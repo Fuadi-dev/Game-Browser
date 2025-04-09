@@ -3,8 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "There are multiple ways to change the port for your React Vite project:",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 3000",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

@@ -57,69 +57,75 @@ class GameController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:255',
             'game_version' => 'required|string|max:255',
-            'played' => 'nullable|string|max:255',
-            'categories' => 'nullable|array', // Validasi array kategori
-            'categories.*' => 'exists:categories,id', // Pastikan setiap ID kategori valid
+            'categories.*' => 'exists:categories,id',
         ]);
+        // die(print_r($request->file('image'), true));
+        // return response()->json(
+        //     [
+        //         'status' => 200,
+        //         'data' => $request->all(),
+        //         'image' => $request->file('image')->getClientOriginalName(),
+        //     ],
+        //     200,
+        // );
 
-        // Proses upload file image dan game...
+
+        // get file name and set to unique name
         $imageName = time() . '_' . $request->file('image')->getClientOriginalName();
+        //save to public_path
         $imagePath = $request->file('image')->storeAs('images', $imageName, 'public');
 
+        // get file name and set to unique name
         $gameName = time() . '_' . $request->file('game')->getClientOriginalName();
         $gamePath = $request->file('game')->storeAs('games-zip', $gameName, 'public');
 
         // Simpan ke database
         $game = new Game();
         $game->user_id = Auth::user()->id;
+        $game->$imageName;
+        $game->$gamePath;
         $game->name = $request->name;
         $game->description = $request->description;
         $game->game = $gameName;
         $game->image = $imageName;
         $game->game_version = $request->game_version;
-        $game->played = $request->played ?? 0;
+        // $game->
 
-        // Proses extract zip file...
         $fname = basename($game->game, '.zip');
         $storage = str_replace('\\', '/', public_path('storage'));
-        $zip = new \ZipArchive;
-        $zip->open("$storage/games-zip/$fname.zip");
-        $zip->extractTo("$storage/games/$fname");
-        $zip->close();
-        unlink("$storage/games-zip/$fname.zip") or die("Could not delete the file");
-        $list = glob("$storage/games/$fname/*");
-        if(count($list) == 1 && is_dir($list[0])){
-            // Gunakan RecursiveDirectoryIterator untuk menangani semua file termasuk yang tersembunyi
-            $files = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($list[0], \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::SELF_FIRST
-            );
+         // $game->game = $game->game . '.zip';
+         //unzip the game file
+         $zip = new \ZipArchive;
+         $zip->open("$storage/games-zip/$fname.zip");
+         //if
+         $zip->extractTo("$storage/games/$fname");
+         //only one folderr in the zip file
 
-            foreach ($files as $fileinfo) {
-                $targetPath = "$storage/games/$fname/" . $fileinfo->getFilename();
-                if ($fileinfo->isFile()) {
-                    rename($fileinfo->getPathname(), $targetPath);
-                }
-            }
+         $zip->close();
+         //delete the zip file
+            unlink("$storage/games-zip/$fname.zip") or die("Could not delete the file");
 
-            // Hapus direktori sumber dengan fungsi yang lebih kuat
-            $this->deleteDirectory($list[0]);
-        }
-        $game->game = str_replace('.zip', '', $game->game);
+         //move the game file to games folder
+         $list = glob("$storage/games/$fname/*");
+         if(count($list) == 1){
+             $files = glob($list[0]. '/*');
+             foreach($files as $file){
 
-        // Simpan game terlebih dahulu untuk mendapatkan ID
-        $game->save();
-
-        // Simpan kategori ke tabel perantara
-        if ($request->has('categories')) {
-            $game->categories()->attach($request->categories);
-        }
-
-        if ($game) {
-            return redirect()->back()->with('success', 'Game successfully added with categories');
+                //move folder to games folder
+                rename($file, "$storage/games/$fname/".basename($file));
+             }
+                //delete the folder
+                // rmdir($list[0]);
+         }
+         $game->game = str_replace('.zip', '', $game->game);
+         $game->save();
+         if ($request->has('categories')) {
+            $game->categories()->sync($request->categories);
         } else {
-            return redirect()->back()->with('error', 'Game failed to add');
+            $game->categories()->detach(); // Hapus semua kategori jika tidak ada yang dipilih
         }
+        return redirect()->back()->with('success', 'Game berhasil ditambahkan');
+
     }
 
     public function getGame($id){
@@ -276,26 +282,26 @@ class GameController extends Controller
             return redirect()->back()->with('error', 'You are not authorized to delete this game');
         }
 
-        // Get storage paths
-        $storage = str_replace('\\', '/', public_path('storage'));
-        $gameDir = "$storage/games/{$game->game}";
-        $imagePath = "$storage/images/{$game->image}";
+        // // Get storage paths
+        // $storage = str_replace('\\', '/', public_path('storage'));
+        // $gameDir = "$storage/games/{$game->game}";
+        // $imagePath = "$storage/images/{$game->image}";
 
-        // First detach all category relationships
-        $game->categories()->detach();
+        // // First detach all category relationships
+        // $game->categories()->detach();
 
-        // Delete the game record
+        // // Delete the game record
         $game->delete();
 
-        // Delete image file if exists
-        if ($game->image && file_exists($imagePath)) {
-            unlink($imagePath);
-        }
+        // // Delete image file if exists
+        // if ($game->image && file_exists($imagePath)) {
+        //     unlink($imagePath);
+        // }
 
-        // Delete game directory if exists
-        if (file_exists($gameDir)) {
-            $this->deleteDirectory($gameDir);
-        }
+        // // Delete game directory if exists
+        // if (file_exists($gameDir)) {
+        //     $this->deleteDirectory($gameDir);
+        // }
 
         return redirect()->back()->with('success', 'Game successfully deleted');
     }
