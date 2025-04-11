@@ -5,8 +5,6 @@ import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Logout from "./pages/Logout"
 import Play from "./pages/Play"
-import Dashboard from "./dashboard/pages/Dashboard"
-import Users from "./dashboard/pages/Users"
 
 
 const routes = {
@@ -17,7 +15,5 @@ const routes = {
     'login' : _ => <Login/>,
     'register' : _ => <Register/>,
     'logout' : message => <Logout message={message}/>,
-    'dashboard' : _ => <Dashboard/>,
-    'users' : _ => <Users/>,
 }
 export default routes;

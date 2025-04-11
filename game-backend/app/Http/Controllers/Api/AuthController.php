@@ -151,7 +151,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'User logged out successfully',
-                'redirect' => 'http://localhost:5173/#login'
+                'redirect' => 'http://localhost:3000/#login'
             ], 200);
         }
 }

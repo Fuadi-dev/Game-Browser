@@ -15,20 +15,25 @@ class GameController extends Controller
 {
     public function game()
     {
-        $game = Game::all();
-        $game->transform(function ($game) {
+        $games = Game::with(['categories', 'user'])->get();
+        
+        $games->transform(function ($game) {
             $game->imgUrl = URL::to('storage/images/' . $game->image);
+            $game->gameUrl = URL::to('storage/games/' . $game->game);
+            
+            $game->developer_name = $game->user ? $game->user->name : 'Unknown';
+            
+            $categories = $game->categories;
+            $game->categories_list = $categories->pluck('name')->toArray();
+            $game->category_name = $categories->pluck('name')->implode(', ');
+            
             return $game;
-        });
-        $game->transform(function ($gameZip) {
-            $gameZip->gameUrl = URL::to('storage/games/' . str_replace('games-zip', 'games', str_replace('.zip', '', $gameZip->game)));
-            return $gameZip;
         });
 
         return response()->json(
             [
                 'status' => 'success',
-                'game' => $game,
+                'game' => $games,
             ],
             200,
         );
@@ -36,10 +41,24 @@ class GameController extends Controller
 
     public function gameById($id)
     {
-        $game = Game::with(['user'])->find($id);
+        $game = Game::with(['user', 'categories'])->find($id);
+        
+        if (!$game) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Game tidak ditemukan'
+            ], 404);
+        }
+
         $game->imgUrl = URL::to('storage/images/' . $game->image);
         $game->gameUrl = URL::to('storage/games/' . $game->game);
+        
         $game->developer_name = $game->user ? $game->user->name : 'Unknown';
+        
+        $categories = $game->categories;
+        $game->categories_list = $categories->pluck('name')->toArray();
+        $game->category_name = $categories->pluck('name')->implode(', ');
+        
         return response()->json(
             [
                 'status' => 'success',

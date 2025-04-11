@@ -11,7 +11,7 @@ export default function Games() {
   })
   const [isSearching, setIsSearching] = useState(false)
   
-  // Fetch all games initially
+  // Fetch all games initially - tetap sama, tidak diubah
   useEffect(() => {
     const getGames = async () => {
       const response = await fetch(`http://127.0.0.1:8000/api/game`)
@@ -39,7 +39,7 @@ export default function Games() {
     getCategories()
   }, [])
   
-  // Handle input changes
+  // Handle input changes - tetap sama
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setSearchParams(prev => ({
@@ -48,12 +48,11 @@ export default function Games() {
     }))
   }
   
-  // Handle search form submission
+  // Handle search form submission - tetap sama
   const handleSearch = async (e) => {
     e.preventDefault()
     setIsSearching(true)
     
-    // Construct query string
     const queryParams = new URLSearchParams()
     if (searchParams.name) queryParams.append('name', searchParams.name)
     if (searchParams.category) queryParams.append('category', searchParams.category)
@@ -75,7 +74,7 @@ export default function Games() {
     }
   }
   
-  // Reset search
+  // Reset search - tetap sama
   const handleReset = async () => {
     setSearchParams({ name: '', category: '' })
     
@@ -89,32 +88,43 @@ export default function Games() {
   }
 
   return (
-    <>
-      <h1>Games</h1>
+    <div className="games-container">
+      <div className="hero-section text-center mb-5">
+        <h1 className="display-4 fw-bold text-gradient">Temukan Game Favorit</h1>
+        <p className="lead">Jelajahi koleksi game menarik dan mainkan sekarang juga!</p>
+      </div>
       
       {/* Search Form */}
-      <div className="card bg-dark mb-4">
-        <div className="card-body">
-          <form onSubmit={handleSearch} className="row g-3">
-            <div className="col-md-5">
+      <div className="search-container p-4 mb-5">
+        <form onSubmit={handleSearch} className="row g-3">
+          <div className="col-md-5">
+            <div className="input-group">
+              <span className="input-group-text bg-transparent">
+                <i className="bi bi-search"></i>
+              </span>
               <input
                 type="text"
-                className="form-control"
-                placeholder="Search by game name"
+                className="form-control custom-input"
+                placeholder="Cari nama game..."
                 name="name"
                 value={searchParams.name}
                 onChange={handleInputChange}
               />
             </div>
-            
-            <div className="col-md-5">
+          </div>
+          
+          <div className="col-md-5">
+            <div className="input-group">
+              <span className="input-group-text bg-transparent">
+                <i className="bi bi-grid"></i>
+              </span>
               <select 
-                className="form-select"
+                className="form-select custom-input"
                 name="category"
                 value={searchParams.category}
                 onChange={handleInputChange}
               >
-                <option value="">All Categories</option>
+                <option value="">Semua Kategori</option>
                 {categories.map(category => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -122,58 +132,67 @@ export default function Games() {
                 ))}
               </select>
             </div>
-            
-            <div className="col-md-2 d-flex gap-2">
-              <button type="submit" className="btn btn-primary" disabled={isSearching}>
-                {isSearching ? 'Searching...' : 'Search'}
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={handleReset}>
-                Reset
-              </button>
-            </div>
-          </form>
-        </div>
+          </div>
+          
+          <div className="col-md-2 d-flex gap-2">
+            <button type="submit" className="btn btn-primary btn-glow flex-grow-1" disabled={isSearching}>
+              {isSearching ? <i className="bi bi-hourglass-split me-2"></i> : <i className="bi bi-search me-2"></i>}
+              {isSearching ? 'Mencari...' : 'Cari'}
+            </button>
+            <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
+              <i className="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Game List */}
-      <div className="row">
-        <div className="col">
-          {games === null ? (
-            <div className="text-center mt-5">
-              <div className="spinner-border text-light" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <p className="mt-2">Loading games...</p>
+      <div className="game-list-container">
+        {games === null ? (
+          <div className="text-center my-5 py-5">
+            <div className="spinner-border text-primary spinner-lg" role="status">
+              <span className="visually-hidden">Loading...</span>
             </div>
-          ) : games.length === 0 ? (
-            <div className="alert alert-info">No games found matching your criteria.</div>
-          ) : (
-            <div className="row">
-              {games.map((game, i) => (
-                <div className="col-2" key={game.id} style={{ margin: '10px' }}>
+            <p className="mt-3">Memuat game...</p>
+          </div>
+        ) : games.length === 0 ? (
+          <div className="no-results text-center py-5">
+            <i className="bi bi-emoji-frown display-1"></i>
+            <p className="mt-3">Tidak ada game yang sesuai dengan kriteria pencarian.</p>
+          </div>
+        ) : (
+          <div className="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-4">
+            {games.map((game) => (
+              <div className="col" key={game.id}>
+                <div className="game-card h-100">
                   <a
                     href={`#game/${game.id}`}
                     onClick={() => session.set({ page: 'game', data: game.id })}
+                    className="game-card-link"
                   >
-                    <figure className="figure">
+                    <div className="game-image-container">
                       <img
                         src={game.imgUrl}
-                        width="100"
-                        height="100"
-                        className="figure-img rounded-circle bg-light"
+                        className="game-image"
                         alt={game.name}
                       />
-                      <figcaption className="figure-caption text-light">
-                        {game.name}
-                      </figcaption>
-                    </figure>
+                      <div className="game-overlay">
+                        <div className="play-icon">
+                          <i className="bi bi-play-fill"></i>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="game-info p-3">
+                      <h5 className="game-title mb-1">{game.name}</h5>
+                      <span className="game-category">{game.category_name || 'Game'}</span>
+                    </div>
                   </a>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </>
+    </div>
   )
 }

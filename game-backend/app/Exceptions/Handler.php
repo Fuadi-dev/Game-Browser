@@ -45,10 +45,10 @@ class Handler extends ExceptionHandler
                 return response()->json([
                     'status' => 'error',
                     'message' => 'CSRF token mismatch',
-                    'redirect' => 'http://localhost:5173/#login'
+                    'redirect' => 'http://localhost:3000/#login'
                 ], 419);
             }
-            return redirect()->to('http://localhost:5173/#login');
+            return redirect()->to('http://localhost:3000/#login');
         }
 
         // Penanganan untuk AuthenticationException (sudah ada)
@@ -57,7 +57,7 @@ class Handler extends ExceptionHandler
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Unauthenticated',
-                    'redirect' => 'http://localhost:5173/#login'
+                    'redirect' => 'http://localhost:3000/#login'
                 ], 401);
             }
         }

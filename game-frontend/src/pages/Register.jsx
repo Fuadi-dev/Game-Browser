@@ -8,7 +8,7 @@ export default function Register() {
   const [ confirmPassword, setConfirmPassword ] = useState('')
   const session = useContext(SessionContext)
 
-  //api request to Register
+  //api request to Register - tetap sama untuk mempertahankan fungsi backend
   const Register = async () => {
     try{
       const response = await fetch(`http://127.0.0.1:8000/api/register`, {
@@ -16,7 +16,7 @@ export default function Register() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name,email, password, confirm_password : confirmPassword })
+        body: JSON.stringify({ name, email, password, confirm_password : confirmPassword })
       })
       const data = await response.json()
       return data
@@ -26,7 +26,6 @@ export default function Register() {
         message: 'Internal Server Error'
       }
     }
-   
   }
 
   const handleClick = async () => {
@@ -41,25 +40,80 @@ export default function Register() {
   }
 
   return (
-    <>
-      <h1>Register</h1>
-      <div className="mb-3 container w-50">
-         <label htmlFor="user" className="form-label">Username</label>
-         <input className="form-control" type='text' id="name" required value={name} onChange={e => setName(e.target.value)} />
-         <label htmlFor="user" className="form-label">Email</label>
-         <input className="form-control" type='email' id="email" required value={email} onChange={e => setEmail(e.target.value)} />
-          <label htmlFor="password" className="form-label">Password</label>
-          <input className="form-control" id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
-          <label htmlFor="password" className="form-label">Confirm Password</label>
-          <input className="form-control" id="confirmPassword" type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
-          <hr/>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h2 className="auth-title">Daftar Akun</h2>
+          <p className="auth-subtitle">Buat akun baru untuk akses penuh ke semua game</p>
+        </div>
+        
+        <div className="auth-body">
+          <div className="form-floating mb-3">
+            <input 
+              type="text" 
+              className="form-control custom-input" 
+              id="name" 
+              placeholder="Nama Pengguna"
+              value={name} 
+              onChange={e => setName(e.target.value)}
+            />
+            <label htmlFor="name">Nama Pengguna</label>
+          </div>
+          
+          <div className="form-floating mb-3">
+            <input 
+              type="email" 
+              className="form-control custom-input" 
+              id="email" 
+              placeholder="nama@contoh.com"
+              value={email} 
+              onChange={e => setEmail(e.target.value)}
+            />
+            <label htmlFor="email">Email</label>
+          </div>
+          
+          <div className="form-floating mb-3">
+            <input 
+              type="password" 
+              className="form-control custom-input" 
+              id="password" 
+              placeholder="Password"
+              value={password} 
+              onChange={e => setPassword(e.target.value)}
+            />
+            <label htmlFor="password">Password</label>
+          </div>
+          
+          <div className="form-floating mb-4">
+            <input 
+              type="password" 
+              className="form-control custom-input" 
+              id="confirmPassword" 
+              placeholder="Konfirmasi Password"
+              value={confirmPassword} 
+              onChange={e => setConfirmPassword(e.target.value)}
+            />
+            <label htmlFor="confirmPassword">Konfirmasi Password</label>
+          </div>
+          
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary btn-glow w-100 py-2 mb-3"
             onClick={() => handleClick()}
-          >Register</button>
+          >
+            <i className="bi bi-person-plus me-2"></i>
+            Daftar
+          </button>
+          
+          <div className="text-center">
+            <p className="mb-0">Sudah punya akun? 
+              <a href="#login" className="ms-1 auth-link" onClick={()=>session.set({page: 'login'})}>
+                Masuk
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
-    <a href="#login" className="text-light" onClick={()=>session.set({page: 'login'})}>Login </a>
-    </>
+    </div>
   )
 }
